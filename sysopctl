@@ -1,0 +1,166 @@
+
+
+
+
+#!/bin/bash
+
+# Version information
+VERSION="v0.1.0"
+
+# Function to display help information
+show_help() {
+    echo "Usage: sysopctl [OPTIONS] COMMAND"
+    echo ""
+    echo "Options:"
+    echo "  --help      Display this help message"
+    echo "  --version   Display the version information"
+    echo ""
+    echo "Commands:"
+    echo "  service     Manage system services (start, stop, list)"
+    echo "  system      View system load"
+    echo "  disk        Check disk usage"
+    echo "  process     Monitor system processes"
+    echo "  logs        Analyze system logs"
+    echo "  backup      Backup system files"
+    echo ""
+    echo "Examples:"
+    echo "  sysopctl service list"
+    echo "  sysopctl system load"
+    echo "  sysopctl service start sshd"
+    echo "  sysopctl disk usage"
+    echo "  sysopctl process monitor"
+    echo "  sysopctl logs analyze"
+    echo "  sysopctl backup /path/to/backup"
+}
+
+# Function to display version information
+show_version() {
+    echo "sysopctl $VERSION"
+}
+
+# Main command handling
+if [ $# -eq 0 ]; then
+    show_help
+    exit 0
+fi
+
+case "$1" in
+    --help)
+        show_help
+        ;;
+    --version)
+        show_version
+        ;;
+    service)
+        if [ $# -lt 2 ]; then
+            echo "Error: Please specify a service command (start, stop, list)"
+            exit 1
+        fi
+
+        case "$2" in
+            start)
+                if [ $# -lt 3 ]; then
+                    echo "Error: Please specify a service name"
+                    exit 1
+                fi
+                sudo systemctl start "$3"
+                ;;
+            stop)
+                if [ $# -lt 3 ]; then
+                    echo "Error: Please specify a service name"
+                    exit 1
+                fi
+                sudo systemctl stop "$3"
+                ;;
+            list)
+                systemctl list-units --type=service
+                ;;
+            *)
+                echo "Error: Invalid service command"
+                exit 1
+                ;;
+        esac
+        ;;
+    system)
+        if [ $# -lt 2 ]; then
+            echo "Error: Please specify a system command (load)"
+            exit 1
+        fi
+
+        case "$2" in
+            load)
+                uptime
+                ;;
+            *)
+                echo "Error: Invalid system command"
+                exit 1
+                ;;
+        esac
+        ;;
+    disk)
+        if [ $# -lt 2 ]; then
+            echo "Error: Please specify a disk command (usage)"
+            exit 1
+        fi
+
+        case "$2" in
+            usage)
+                df -h
+                ;;
+            *)
+                echo "Error: Invalid disk command"
+                exit 1
+                ;;
+        esac
+        ;;
+    process)
+        if [ $# -lt 2 ]; then
+            echo "Error: Please specify a process command (monitor)"
+            exit 1
+        fi
+
+        case "$2" in
+            monitor)
+                # Choose top or htop based on availability
+                if command -v htop &> /dev/null; then
+                    htop
+                else
+                    top
+                fi
+                ;;
+            *)
+                echo "Error: Invalid process command"
+                exit 1
+                ;;
+        esac
+        ;;
+    logs)
+        if [ $# -lt 2 ]; then
+            echo "Error: Please specify a logs command (analyze)"
+            exit 1
+        fi
+
+        case "$2" in
+            analyze)
+                journalctl -p err -n 20  # Show recent critical logs
+                ;;
+            *)
+                echo "Error: Invalid logs command"
+                exit 1
+                ;;
+        esac
+        ;;
+    backup)
+        if [ $# -lt 2 ]; then
+            echo "Error: Please specify a backup path"
+            exit 1
+        fi
+
+        rsync -avz "$2" /backup/  # backup
+        ;;
+    *)
+        echo "Error: Invalid command"
+        show_help
+        exit 1
+        ;;
+esac
